@@ -1,0 +1,22 @@
+  1 CC =gcc
+  2 LDFLAGS = -pthread -lpthread
+  3
+  4 all_s:
+  5     $(CC) -o chat_server $(LDFLAGS) chat_server.c
+  6
+  7 all_c :
+  8     $(CC) -o chat_client $(LDFLAGS) chat_client.c
+  9
+ 10 all :
+ 11     make all_c
+ 12     make all_s
+ 13
+ 14 run_server : all_s
+ 15     ./chat_server
+ 16 run_client : all_c
+ 17     ./chat_client
+ 18
+ 19 .c.0 :
+ 20     $(CC) -c $<
+ 21 clean :
+ 22     rm -rf chat_client chat_server *.o

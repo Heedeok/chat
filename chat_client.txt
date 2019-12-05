@@ -1,0 +1,67 @@
+  1 #include <stdio.h>
+  2 #include <stdlib.h>
+  3 #include <string.h>
+  4 #include <unistd.h>
+  5 #include <netinet/in.h>
+  6 #include <sys/socket.h>
+  7 #include <sys/types.h>
+  8 #include <arpa/inet.h>
+  9 #include <pthread.h>
+ 10 #define port 12000
+ 11 #define IPADDR "155.230.17.40"
+ 12
+ 13 void*sending(void*);
+ 14 void*reading(void*);
+ 15
+ 16 int main(){
+ 17     int c_socket;
+ 18     struct sockaddr_in c_addr;
+ 19     int len;
+ 20
+ 21     pthread_t p1,p2;
+ 22     int thr_r,thr_s;
+ 23     int status;
+ 24
+ 25     c_socket = socket(AF_INET,SOCK_STREAM,0);
+ 26
+ 27     memset(&c_addr,0,sizeof(c_addr));
+ 28     c_addr.sin_family=AF_INET;
+ 29     c_addr.sin_addr.s_addr=inet_addr(IPADDR);
+ 30     c_addr.sin_port=htons(port);
+ 31
+ 32     len=sizeof(c_addr);
+ 33
+ 34     if(connect(c_socket,(struct sockaddr*)&c_addr,sizeof(c_addr))==-1){
+ 35         printf("CAn nor connect\n");
+ 36         close (c_socket);
+ 37         return -1;}
+ 38
+ 39     thr_r=pthread_create(&p1,NULL,reading,(void*)&c_socket);
+ 40     thr_s=pthread_create(&p2,NULL,sending,(void*)&c_socket);
+ 41
+ 42     pthread_join(p1,(void**)&status);
+ 43     pthread_join(p2,(void**)&status);
+ 44
+ 45     close (c_socket);
+ 46
+ 47 }
+ 48 void* reading(void* c_s){
+ 49     char rcvBuffer[BUFSIZ];
+ 50     while(1){
+ 51         int n=read(*(int*)c_s,rcvBuffer,sizeof(rcvBuffer));
+ 52         rcvBuffer[n]='\0';
+ 53         printf("server->%s",rcvBuffer);
+ 54         if(!strcmp(rcvBuffer,"quit\n"))
+ 55             break;
+ 56     }
+ 57 }
+ 58 void* sending(void* c_s){
+ 59     char sndBuffer[BUFSIZ];
+ 60     while(1){
+ 61         fgets(sndBuffer,sizeof(sndBuffer),stdin);
+ 62         write(*(int*)c_s,sndBuffer,sizeof(sndBuffer));
+ 63         if(!strcmp(sndBuffer,"quit\n"))
+ 64             break;
+ 65     }
+ 66 }                                                                                  
+
